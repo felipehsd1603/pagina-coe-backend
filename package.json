@@ -1,0 +1,41 @@
+{
+  "name": "portal-aegea-backend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Portal de Produtos Digitais AEGEA - Backend API",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "tsc --noEmit",
+    "db:migrate": "npx prisma migrate dev",
+    "db:seed": "npx prisma db seed",
+    "db:studio": "npx prisma studio",
+    "db:generate": "npx prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "prisma": "^6.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "prisma": {
+    "seed": "tsx src/prisma/seed/index.ts"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
