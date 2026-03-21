@@ -5,6 +5,13 @@ const envSchema = z.object({
   DATABASE_URL: z.string().default(''),
   AUTH_MODE: z.enum(['mock', 'entra']).default('mock'),
   MOCK_JWT_SECRET: z.string().default('empresa-mock-secret-dev-only'),
+  // CoE Data Source: "dataverse" (real API), "local" (AEGEA telemetria), "mock" (demo)
+  COE_DATA_SOURCE: z.enum(['dataverse', 'local', 'mock']).default('local'),
+  // Dataverse OData (required when COE_DATA_SOURCE=dataverse)
+  DATAVERSE_URL: z.string().optional(),
+  DATAVERSE_TENANT_ID: z.string().optional(),
+  DATAVERSE_CLIENT_ID: z.string().optional(),
+  DATAVERSE_CLIENT_SECRET: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
