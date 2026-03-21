@@ -1,0 +1,1357 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Portal EMPRESA_FICTICIA - API",
+    "version": "1.0.0",
+    "description": "API do Portal de Produtos Digitais e Automacoes do CoE Power Platform - EMPRESA_FICTICIA",
+    "contact": {
+      "name": "CoE Power Platform - EMPRESA_FICTICIA"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "API v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT obtido via POST /auth/login (mock) ou Microsoft Entra ID"
+      }
+    },
+    "schemas": {
+      "App": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Gestao de Obras"
+          },
+          "slug": {
+            "type": "string",
+            "example": "gestao-de-obras"
+          },
+          "description": {
+            "type": "string"
+          },
+          "shortDescription": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "OPERACIONAL",
+              "COMERCIAL",
+              "CORPORATIVO",
+              "FINANCEIRO",
+              "ENGENHARIA",
+              "RH",
+              "SUSTENTABILIDADE",
+              "TI"
+            ]
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "IDEACAO",
+              "DESENVOLVIMENTO",
+              "HOMOLOGACAO",
+              "PRODUCAO",
+              "DESATIVADO"
+            ]
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "CRITICAL",
+              "STANDARD",
+              "LOW"
+            ]
+          },
+          "directive": {
+            "type": "string",
+            "enum": [
+              "SCALE",
+              "MAINTAIN",
+              "RETIRE",
+              "EVALUATE"
+            ]
+          },
+          "qualLevel": {
+            "type": "string",
+            "enum": [
+              "OURO",
+              "PRATA",
+              "BRONZE",
+              "SEM_CLASSIFICACAO"
+            ]
+          },
+          "owner": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "regional": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "iconUrl": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "appUrl": {
+            "type": "string"
+          },
+          "usersCount": {
+            "type": "integer"
+          },
+          "sessionsMonth": {
+            "type": "integer"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AppDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/App"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "benefits": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AppBenefit"
+                }
+              },
+              "documents": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AppDocument"
+                }
+              },
+              "metrics": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AppMetric"
+                }
+              },
+              "relatedFlows": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RelatedFlow"
+                }
+              },
+              "testimonials": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Testimonial"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AppBenefit": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "AppDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PDF",
+              "LINK",
+              "VIDEO"
+            ]
+          }
+        }
+      },
+      "AppMetric": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        }
+      },
+      "RelatedFlow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "Testimonial": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "appId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "authorName": {
+            "type": "string"
+          },
+          "authorRole": {
+            "type": "string"
+          },
+          "authorArea": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Demand": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "requesterName": {
+            "type": "string"
+          },
+          "requesterEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "area": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_REVIEW",
+              "APPROVED",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "REJECTED"
+            ]
+          },
+          "adminNotes": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DemandCreate": {
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "requesterName",
+          "requesterEmail",
+          "area"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "requesterName": {
+            "type": "string"
+          },
+          "requesterEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "area": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL"
+            ]
+          }
+        }
+      },
+      "GlobalMetric": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        }
+      },
+      "Course": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "T1",
+              "T2",
+              "T3",
+              "T4"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "durationMin": {
+            "type": "integer"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@empresa.mock"
+          },
+          "password": {
+            "type": "string",
+            "example": "admin"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Apps",
+      "description": "Catalogo de aplicacoes Power Platform"
+    },
+    {
+      "name": "Metrics",
+      "description": "KPIs globais do CoE"
+    },
+    {
+      "name": "Testimonials",
+      "description": "Depoimentos de usuarios"
+    },
+    {
+      "name": "Courses",
+      "description": "Cursos do programa Citizen Developer"
+    },
+    {
+      "name": "Demands",
+      "description": "Gestao de demandas"
+    },
+    {
+      "name": "Auth",
+      "description": "Autenticacao (Mock / Entra ID)"
+    },
+    {
+      "name": "CoE Sync",
+      "description": "Integracao com CoE Starter Kit (Dataverse) — apps, flows, makers, ambientes, conectores"
+    },
+    {
+      "name": "Admin - Apps",
+      "description": "Enriquecimento editorial de apps (descricao, banner, beneficios)"
+    },
+    {
+      "name": "Admin - Testimonials",
+      "description": "CRUD de depoimentos"
+    },
+    {
+      "name": "Admin - Demands",
+      "description": "Gestao de demandas"
+    },
+    {
+      "name": "Admin - Courses",
+      "description": "CRUD de cursos"
+    }
+  ],
+  "paths": {
+    "/admin/apps": {
+      "get": {
+        "tags": [
+          "Admin - Apps"
+        ],
+        "summary": "Listar apps para enriquecimento editorial",
+        "description": "Apps sao sincronizados do CoE. Aqui o admin edita campos como descricao, banner, beneficios.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de apps",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/App"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/apps/{id}": {
+      "put": {
+        "tags": [
+          "Admin - Apps"
+        ],
+        "summary": "Enriquecer app (descricao, banner, beneficios, docs)",
+        "description": "Edita apenas campos editoriais. Dados tecnicos (owner, ambiente, conectores) vem do CoE.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "shortDescription": {
+                    "type": "string"
+                  },
+                  "bannerUrl": {
+                    "type": "string"
+                  },
+                  "iconUrl": {
+                    "type": "string"
+                  },
+                  "published": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "App atualizado"
+          }
+        }
+      }
+    },
+    "/admin/testimonials": {
+      "get": {
+        "tags": [
+          "Admin - Testimonials"
+        ],
+        "summary": "Listar depoimentos (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de depoimentos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Testimonial"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin - Testimonials"
+        ],
+        "summary": "Criar depoimento",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Testimonial"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Depoimento criado"
+          }
+        }
+      }
+    },
+    "/admin/testimonials/{id}": {
+      "put": {
+        "tags": [
+          "Admin - Testimonials"
+        ],
+        "summary": "Atualizar depoimento",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Depoimento atualizado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin - Testimonials"
+        ],
+        "summary": "Excluir depoimento",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Depoimento excluido"
+          }
+        }
+      }
+    },
+    "/admin/demands": {
+      "get": {
+        "tags": [
+          "Admin - Demands"
+        ],
+        "summary": "Listar demandas (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de demandas"
+          }
+        }
+      }
+    },
+    "/admin/demands/{id}": {
+      "put": {
+        "tags": [
+          "Admin - Demands"
+        ],
+        "summary": "Atualizar demanda (status, notas, prioridade)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Demanda atualizada"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin - Demands"
+        ],
+        "summary": "Excluir demanda",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Demanda excluida"
+          }
+        }
+      }
+    },
+    "/admin/courses": {
+      "get": {
+        "tags": [
+          "Admin - Courses"
+        ],
+        "summary": "Listar cursos (admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de cursos"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin - Courses"
+        ],
+        "summary": "Criar curso",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Course"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Curso criado"
+          }
+        }
+      }
+    },
+    "/admin/courses/{id}": {
+      "put": {
+        "tags": [
+          "Admin - Courses"
+        ],
+        "summary": "Atualizar curso",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Curso atualizado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin - Courses"
+        ],
+        "summary": "Excluir curso",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Curso excluido"
+          }
+        }
+      }
+    },
+    "/apps": {
+      "get": {
+        "tags": [
+          "Apps"
+        ],
+        "summary": "Listar apps publicados",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPERACIONAL",
+                "COMERCIAL",
+                "CORPORATIVO",
+                "FINANCEIRO",
+                "ENGENHARIA",
+                "RH",
+                "SUSTENTABILIDADE",
+                "TI"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "phase",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "IDEACAO",
+                "DESENVOLVIMENTO",
+                "HOMOLOGACAO",
+                "PRODUCAO",
+                "DESATIVADO"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de apps",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/App"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "totalPages": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apps/{slug}": {
+      "get": {
+        "tags": [
+          "Apps"
+        ],
+        "summary": "Detalhe do app por slug",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App com beneficios, documentos, metricas, fluxos e depoimentos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "App nao encontrado"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Login (mock)",
+        "description": "Mock auth. Usuarios: admin@empresa.mock, editor@empresa.mock, viewer@empresa.mock (senha: admin)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token JWT + dados do usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais invalidas"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Usuario autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados do usuario logado"
+          },
+          "401": {
+            "description": "Token invalido ou ausente"
+          }
+        }
+      }
+    },
+    "/coe/sync": {
+      "post": {
+        "tags": [
+          "CoE Sync"
+        ],
+        "summary": "Disparar sincronizacao com CoE Starter Kit",
+        "description": "Puxa dados do Dataverse (mock em dev) e atualiza o banco local. Retorna resumo com metricas calculadas.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado da sincronizacao",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success",
+                        "partial",
+                        "error"
+                      ]
+                    },
+                    "duration": {
+                      "type": "integer",
+                      "description": "Tempo em ms"
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source": {
+                            "type": "string"
+                          },
+                          "recordsFound": {
+                            "type": "integer"
+                          },
+                          "recordsSynced": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "computedMetrics": {
+                      "type": "object",
+                      "properties": {
+                        "totalApps": {
+                          "type": "integer"
+                        },
+                        "totalFlows": {
+                          "type": "integer"
+                        },
+                        "totalMakers": {
+                          "type": "integer"
+                        },
+                        "totalEnvironments": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/coe/apps": {
+      "get": {
+        "tags": [
+          "CoE Sync"
+        ],
+        "summary": "Apps do CoE Starter Kit",
+        "description": "Retorna inventario de apps mapeado do Dataverse com categoria inferida",
+        "responses": {
+          "200": {
+            "description": "Lista de apps do CoE"
+          }
+        }
+      }
+    },
+    "/coe/flows": {
+      "get": {
+        "tags": [
+          "CoE Sync"
+        ],
+        "summary": "Flows do CoE Starter Kit",
+        "description": "Retorna inventario de fluxos Power Automate com link ao app pai",
+        "responses": {
+          "200": {
+            "description": "Lista de flows do CoE"
+          }
+        }
+      }
+    },
+    "/coe/makers": {
+      "get": {
+        "tags": [
+          "CoE Sync"
+        ],
+        "summary": "Makers (Citizen Developers) do CoE",
+        "description": "Retorna lista de makers com contagem de apps e flows",
+        "responses": {
+          "200": {
+            "description": "Lista de makers"
+          }
+        }
+      }
+    },
+    "/coe/environments": {
+      "get": {
+        "tags": [
+          "CoE Sync"
+        ],
+        "summary": "Ambientes Power Platform",
+        "description": "Retorna ambientes com contagem de apps, flows e makers",
+        "responses": {
+          "200": {
+            "description": "Lista de ambientes"
+          }
+        }
+      }
+    },
+    "/coe/connectors": {
+      "get": {
+        "tags": [
+          "CoE Sync"
+        ],
+        "summary": "Conectores em uso",
+        "description": "Retorna conectores com tier (Standard/Premium/Custom) e contagem de uso",
+        "responses": {
+          "200": {
+            "description": "Lista de conectores"
+          }
+        }
+      }
+    },
+    "/courses": {
+      "get": {
+        "tags": [
+          "Courses"
+        ],
+        "summary": "Listar cursos do Citizen Developer",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tier",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "T1",
+                "T2",
+                "T3",
+                "T4"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de cursos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Course"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/demands": {
+      "post": {
+        "tags": [
+          "Demands"
+        ],
+        "summary": "Enviar nova demanda",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemandCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Demanda criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demand"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados invalidos"
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "Metrics"
+        ],
+        "summary": "KPIs globais do CoE",
+        "responses": {
+          "200": {
+            "description": "Lista de metricas globais",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GlobalMetric"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/testimonials": {
+      "get": {
+        "tags": [
+          "Testimonials"
+        ],
+        "summary": "Listar depoimentos publicados",
+        "responses": {
+          "200": {
+            "description": "Lista de depoimentos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Testimonial"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
