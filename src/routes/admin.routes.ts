@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/authMiddleware';
-import { adminGuard } from '../middleware/adminGuard';
+import { requireRole } from '../middleware/requireRole';
 import {
   adminListApps, adminUpdateApp,
 } from '../controllers/admin/apps.admin.controller';
@@ -13,13 +13,117 @@ import {
 import {
   adminListCourses, adminCreateCourse, adminUpdateCourse, adminDeleteCourse,
 } from '../controllers/admin/courses.admin.controller';
+import {
+  adminListUsers, adminCreateUser, adminUpdateUser, adminDeleteUser,
+} from '../controllers/admin/users.admin.controller';
 
 export const adminRouter = Router();
 
-adminRouter.use(authMiddleware, adminGuard);
+// All admin routes require authentication
+adminRouter.use(authMiddleware);
 
-// ─── Apps (somente leitura + enriquecimento editorial) ──
-// Criar/deletar apps NAO e necessario — dados vem do CoE Sync
+// ─── Users (ADMIN only) ──────────────────────────────────
+
+/**
+ * @openapi
+ * /admin/users:
+ *   get:
+ *     tags: [Admin - Users]
+ *     summary: Listar usuarios
+ *     description: "Requer role: ADMIN"
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios
+ *   post:
+ *     tags: [Admin - Users]
+ *     summary: Criar usuario
+ *     description: "Requer role: ADMIN"
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, name]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "usuario@empresa.com.br"
+ *               name:
+ *                 type: string
+ *                 example: "Nome do Usuario"
+ *               role:
+ *                 type: string
+ *                 enum: [VIEWER, EDITOR, ADMIN]
+ *                 default: VIEWER
+ *               entraId:
+ *                 type: string
+ *                 description: ID do Microsoft Entra (opcional)
+ *     responses:
+ *       201:
+ *         description: Usuario criado
+ *       409:
+ *         description: Email ja cadastrado
+ */
+adminRouter.get('/users', requireRole('ADMIN'), adminListUsers);
+adminRouter.post('/users', requireRole('ADMIN'), adminCreateUser);
+
+/**
+ * @openapi
+ * /admin/users/{id}:
+ *   put:
+ *     tags: [Admin - Users]
+ *     summary: Atualizar usuario (nome, role)
+ *     description: "Requer role: ADMIN. Nao permite remover o ultimo admin."
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [VIEWER, EDITOR, ADMIN]
+ *     responses:
+ *       200:
+ *         description: Usuario atualizado
+ *   delete:
+ *     tags: [Admin - Users]
+ *     summary: Excluir usuario
+ *     description: "Requer role: ADMIN. Nao permite auto-exclusao nem remover ultimo admin."
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Usuario excluido
+ */
+adminRouter.put('/users/:id', requireRole('ADMIN'), adminUpdateUser);
+adminRouter.delete('/users/:id', requireRole('ADMIN'), adminDeleteUser);
+
+// ─── Apps (VIEWER pode ver, EDITOR pode editar) ──────────
 
 /**
  * @openapi
@@ -27,7 +131,7 @@ adminRouter.use(authMiddleware, adminGuard);
  *   get:
  *     tags: [Admin - Apps]
  *     summary: Listar apps para enriquecimento editorial
- *     description: Apps sao sincronizados do CoE. Aqui o admin edita campos como descricao, banner, beneficios.
+ *     description: "Requer role: VIEWER ou superior"
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -40,7 +144,7 @@ adminRouter.use(authMiddleware, adminGuard);
  *               items:
  *                 $ref: '#/components/schemas/App'
  */
-adminRouter.get('/apps', adminListApps);
+adminRouter.get('/apps', requireRole('VIEWER'), adminListApps);
 
 /**
  * @openapi
@@ -48,7 +152,7 @@ adminRouter.get('/apps', adminListApps);
  *   put:
  *     tags: [Admin - Apps]
  *     summary: Enriquecer app (descricao, banner, beneficios, docs)
- *     description: Edita apenas campos editoriais. Dados tecnicos (owner, ambiente, conectores) vem do CoE.
+ *     description: "Requer role: EDITOR ou superior"
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -79,9 +183,9 @@ adminRouter.get('/apps', adminListApps);
  *       200:
  *         description: App atualizado
  */
-adminRouter.put('/apps/:id', adminUpdateApp);
+adminRouter.put('/apps/:id', requireRole('EDITOR'), adminUpdateApp);
 
-// ─── Testimonials (CRUD completo) ───────────────────────
+// ─── Testimonials ────────────────────────────────────────
 
 /**
  * @openapi
@@ -89,20 +193,16 @@ adminRouter.put('/apps/:id', adminUpdateApp);
  *   get:
  *     tags: [Admin - Testimonials]
  *     summary: Listar depoimentos (admin)
+ *     description: "Requer role: VIEWER ou superior"
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de depoimentos
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Testimonial'
  *   post:
  *     tags: [Admin - Testimonials]
  *     summary: Criar depoimento
+ *     description: "Requer role: EDITOR ou superior"
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -115,8 +215,8 @@ adminRouter.put('/apps/:id', adminUpdateApp);
  *       201:
  *         description: Depoimento criado
  */
-adminRouter.get('/testimonials', adminListTestimonials);
-adminRouter.post('/testimonials', adminCreateTestimonial);
+adminRouter.get('/testimonials', requireRole('VIEWER'), adminListTestimonials);
+adminRouter.post('/testimonials', requireRole('EDITOR'), adminCreateTestimonial);
 
 /**
  * @openapi
@@ -124,6 +224,7 @@ adminRouter.post('/testimonials', adminCreateTestimonial);
  *   put:
  *     tags: [Admin - Testimonials]
  *     summary: Atualizar depoimento
+ *     description: "Requer role: EDITOR ou superior"
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -139,6 +240,7 @@ adminRouter.post('/testimonials', adminCreateTestimonial);
  *   delete:
  *     tags: [Admin - Testimonials]
  *     summary: Excluir depoimento
+ *     description: "Requer role: ADMIN"
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -152,10 +254,10 @@ adminRouter.post('/testimonials', adminCreateTestimonial);
  *       204:
  *         description: Depoimento excluido
  */
-adminRouter.put('/testimonials/:id', adminUpdateTestimonial);
-adminRouter.delete('/testimonials/:id', adminDeleteTestimonial);
+adminRouter.put('/testimonials/:id', requireRole('EDITOR'), adminUpdateTestimonial);
+adminRouter.delete('/testimonials/:id', requireRole('ADMIN'), adminDeleteTestimonial);
 
-// ─── Demands (CRUD completo) ────────────────────────────
+// ─── Demands ─────────────────────────────────────────────
 
 /**
  * @openapi
@@ -163,13 +265,14 @@ adminRouter.delete('/testimonials/:id', adminDeleteTestimonial);
  *   get:
  *     tags: [Admin - Demands]
  *     summary: Listar demandas (admin)
+ *     description: "Requer role: VIEWER ou superior"
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de demandas
  */
-adminRouter.get('/demands', adminListDemands);
+adminRouter.get('/demands', requireRole('VIEWER'), adminListDemands);
 
 /**
  * @openapi
@@ -177,6 +280,7 @@ adminRouter.get('/demands', adminListDemands);
  *   put:
  *     tags: [Admin - Demands]
  *     summary: Atualizar demanda (status, notas, prioridade)
+ *     description: "Requer role: EDITOR ou superior"
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -192,6 +296,7 @@ adminRouter.get('/demands', adminListDemands);
  *   delete:
  *     tags: [Admin - Demands]
  *     summary: Excluir demanda
+ *     description: "Requer role: ADMIN"
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -205,13 +310,10 @@ adminRouter.get('/demands', adminListDemands);
  *       204:
  *         description: Demanda excluida
  */
-adminRouter.put('/demands/:id', adminUpdateDemand);
-adminRouter.delete('/demands/:id', adminDeleteDemand);
+adminRouter.put('/demands/:id', requireRole('EDITOR'), adminUpdateDemand);
+adminRouter.delete('/demands/:id', requireRole('ADMIN'), adminDeleteDemand);
 
-// ─── Metricas REMOVIDAS — calculadas automaticamente do CoE ──
-// Use GET /coe/sync para obter metricas atualizadas
-
-// ─── Courses (CRUD completo) ────────────────────────────
+// ─── Courses ─────────────────────────────────────────────
 
 /**
  * @openapi
@@ -219,6 +321,7 @@ adminRouter.delete('/demands/:id', adminDeleteDemand);
  *   get:
  *     tags: [Admin - Courses]
  *     summary: Listar cursos (admin)
+ *     description: "Requer role: VIEWER ou superior"
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -227,6 +330,7 @@ adminRouter.delete('/demands/:id', adminDeleteDemand);
  *   post:
  *     tags: [Admin - Courses]
  *     summary: Criar curso
+ *     description: "Requer role: EDITOR ou superior"
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -239,8 +343,8 @@ adminRouter.delete('/demands/:id', adminDeleteDemand);
  *       201:
  *         description: Curso criado
  */
-adminRouter.get('/courses', adminListCourses);
-adminRouter.post('/courses', adminCreateCourse);
+adminRouter.get('/courses', requireRole('VIEWER'), adminListCourses);
+adminRouter.post('/courses', requireRole('EDITOR'), adminCreateCourse);
 
 /**
  * @openapi
@@ -248,6 +352,7 @@ adminRouter.post('/courses', adminCreateCourse);
  *   put:
  *     tags: [Admin - Courses]
  *     summary: Atualizar curso
+ *     description: "Requer role: EDITOR ou superior"
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -263,6 +368,7 @@ adminRouter.post('/courses', adminCreateCourse);
  *   delete:
  *     tags: [Admin - Courses]
  *     summary: Excluir curso
+ *     description: "Requer role: ADMIN"
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -276,5 +382,5 @@ adminRouter.post('/courses', adminCreateCourse);
  *       204:
  *         description: Curso excluido
  */
-adminRouter.put('/courses/:id', adminUpdateCourse);
-adminRouter.delete('/courses/:id', adminDeleteCourse);
+adminRouter.put('/courses/:id', requireRole('EDITOR'), adminUpdateCourse);
+adminRouter.delete('/courses/:id', requireRole('ADMIN'), adminDeleteCourse);

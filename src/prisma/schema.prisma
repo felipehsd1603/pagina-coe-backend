@@ -150,7 +150,7 @@ model User {
   entraId   String   @unique
   email     String   @unique
   name      String
-  role      String   @default("USER") // USER, ADMIN
+  role      String   @default("VIEWER") // VIEWER, EDITOR, ADMIN
   createdAt DateTime @default(now())
 
   @@map("users")

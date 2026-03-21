@@ -3,8 +3,13 @@ import {
   syncFromCoE, getCoeApps, getCoeFlows,
   getCoeMakers, getCoeEnvironments, getCoeConnectors,
 } from '../services/coe-sync.service';
+import { authMiddleware } from '../middleware/authMiddleware';
+import { requireRole } from '../middleware/requireRole';
 
 export const coeRouter = Router();
+
+// All CoE routes require authentication + ADMIN role
+coeRouter.use(authMiddleware, requireRole('ADMIN'));
 
 /**
  * @openapi
