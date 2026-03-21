@@ -14,7 +14,7 @@ app.use(express.json());
 // Swagger docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Portal AEGEA - API Docs',
+  customSiteTitle: 'Portal EMPRESA_FICTICIA - API Docs',
 }));
 app.get('/api/docs.json', (_req, res) => res.json(swaggerSpec));
 

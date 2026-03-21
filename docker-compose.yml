@@ -10,7 +10,7 @@ services:
       - '4000:4000'
     environment:
       - PORT=4000
-      - DATABASE_URL=sqlserver://sa:YourStr0ng!Pass@db:1433;database=portal_aegea;encrypt=true;trustServerCertificate=true
+      - DATABASE_URL=sqlserver://sa:YourStr0ng!Pass@db:1433;database=portal_empresa;encrypt=true;trustServerCertificate=true
       - AUTH_MODE=mock
       - MOCK_JWT_SECRET=dev-secret-key-change-in-production
     volumes:

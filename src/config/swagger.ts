@@ -4,11 +4,11 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Portal AEGEA - API',
+      title: 'Portal EMPRESA_FICTICIA - API',
       version: '1.0.0',
-      description: 'API do Portal de Produtos Digitais e Automacoes do CoE Power Platform - AEGEA',
+      description: 'API do Portal de Produtos Digitais e Automacoes do CoE Power Platform - EMPRESA_FICTICIA',
       contact: {
-        name: 'CoE Power Platform - AEGEA',
+        name: 'CoE Power Platform - EMPRESA_FICTICIA',
       },
     },
     servers: [
@@ -173,7 +173,7 @@ const options: swaggerJsdoc.Options = {
           type: 'object',
           required: ['email', 'password'],
           properties: {
-            email: { type: 'string', example: 'admin@aegea.mock' },
+            email: { type: 'string', example: 'admin@empresa.mock' },
             password: { type: 'string', example: 'admin' },
           },
         },

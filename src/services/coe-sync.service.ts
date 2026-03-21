@@ -82,7 +82,7 @@ class MockDataverseClient implements DataverseClient {
  * Exemplo de chamada OData:
  *   GET {DATAVERSE_URL}/api/data/v9.2/admin_apps
  *     ?$select=admin_appid,admin_displayname,admin_appowner,...
- *     &$filter=admin_appenvironment eq 'Producao - Aegea Saneamento'
+ *     &$filter=admin_appenvironment eq 'Producao - Empresa Ficticia Saneamento'
  *     &$top=500
  *   Authorization: Bearer {access_token}
  */

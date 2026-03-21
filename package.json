@@ -1,8 +1,8 @@
 {
-  "name": "portal-aegea-backend",
+  "name": "portal-empresa-backend",
   "private": true,
   "version": "1.0.0",
-  "description": "Portal de Produtos Digitais AEGEA - Backend API",
+  "description": "Portal de Produtos Digitais EMPRESA_FICTICIA - Backend API",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
