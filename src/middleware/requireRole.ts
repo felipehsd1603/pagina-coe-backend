@@ -37,8 +37,6 @@ export function requireRole(...roles: Role[]) {
 
     res.status(403).json({
       error: 'Permissao insuficiente',
-      required: roles,
-      current: userRole,
     });
   };
 }

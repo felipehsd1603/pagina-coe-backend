@@ -2,9 +2,13 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(5001),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DATABASE_URL: z.string().default(''),
   AUTH_MODE: z.enum(['mock', 'entra']).default('mock'),
-  MOCK_JWT_SECRET: z.string().default('empresa-mock-secret-dev-only'),
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET deve ter pelo menos 32 caracteres'),
+  JWT_EXPIRES_IN: z.string().default('8h'),
+  // CORS: comma-separated allowed origins
+  CORS_ORIGINS: z.string().default('http://localhost:3000,http://localhost:5173'),
   // CoE Data Source: "dataverse" (real API), "local" (AEGEA telemetria), "mock" (demo)
   COE_DATA_SOURCE: z.enum(['dataverse', 'local', 'mock']).default('local'),
   // Dataverse OData (required when COE_DATA_SOURCE=dataverse)

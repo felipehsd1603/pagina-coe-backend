@@ -28,28 +28,19 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
   const token = authHeader.split(' ')[1];
 
   try {
-    if (env.AUTH_MODE === 'mock') {
-      // Mock mode: decode base64 token containing user JSON
-      const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-      req.user = {
-        id: decoded.id,
-        email: decoded.email,
-        name: decoded.name,
-        role: decoded.role,
-      };
-      next();
-    } else {
-      // Entra ID mode: verify JWT
-      // Placeholder for JWKS validation against Microsoft Entra ID
-      const decoded = jwt.verify(token, env.MOCK_JWT_SECRET) as jwt.JwtPayload;
-      req.user = {
-        id: decoded.sub || decoded.id,
-        email: decoded.email,
-        name: decoded.name,
-        role: decoded.role || 'USER',
-      };
-      next();
-    }
+    // Both mock and entra modes use signed JWT tokens
+    const decoded = jwt.verify(token, env.JWT_SECRET, {
+      algorithms: ['HS256'],
+      issuer: env.AUTH_MODE === 'mock' ? 'portal-aegea-mock' : 'portal-aegea',
+    }) as jwt.JwtPayload;
+
+    req.user = {
+      id: decoded.sub || decoded.id,
+      email: decoded.email,
+      name: decoded.name,
+      role: decoded.role || 'VIEWER',
+    };
+    next();
   } catch (error) {
     res.status(401).json({ error: 'Token invalido ou expirado' });
   }

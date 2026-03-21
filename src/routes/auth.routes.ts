@@ -10,7 +10,7 @@ export const authRouter = Router();
  *   post:
  *     tags: [Auth]
  *     summary: Login (mock)
- *     description: "Mock auth. Usuarios: admin@empresa.mock, editor@empresa.mock, viewer@empresa.mock (senha: admin)"
+ *     description: "Mock auth. Usuarios: admin@aegea.mock, editor@aegea.mock, viewer@aegea.mock"
  *     requestBody:
  *       required: true
  *       content:

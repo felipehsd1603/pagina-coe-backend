@@ -1,35 +1,36 @@
-import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
+import prisma from '../../config/database';
 
-const prisma = new PrismaClient();
+const createUserSchema = z.object({
+  email: z.string().email().max(200),
+  name: z.string().min(1).max(200),
+  role: z.enum(['VIEWER', 'EDITOR', 'ADMIN']).default('VIEWER'),
+  entraId: z.string().max(200).optional(),
+});
 
-export async function adminListUsers(req: Request, res: Response) {
+const updateUserSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  role: z.enum(['VIEWER', 'EDITOR', 'ADMIN']).optional(),
+});
+
+export async function adminListUsers(_req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
+      select: { id: true, email: true, name: true, role: true, createdAt: true },
     });
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao listar usuarios' });
+    next(error);
   }
 }
 
-export async function adminCreateUser(req: Request, res: Response) {
+export async function adminCreateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { email, name, role, entraId } = req.body;
+    const data = createUserSchema.parse(req.body);
 
-    if (!email || !name) {
-      res.status(400).json({ error: 'Email e nome sao obrigatorios' });
-      return;
-    }
-
-    const validRoles = ['VIEWER', 'EDITOR', 'ADMIN'];
-    if (role && !validRoles.includes(role)) {
-      res.status(400).json({ error: `Role invalida. Use: ${validRoles.join(', ')}` });
-      return;
-    }
-
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) {
       res.status(409).json({ error: 'Ja existe um usuario com este email' });
       return;
@@ -37,65 +38,66 @@ export async function adminCreateUser(req: Request, res: Response) {
 
     const user = await prisma.user.create({
       data: {
-        email,
-        name,
-        role: role || 'VIEWER',
-        entraId: entraId || `manual-${Date.now()}`,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        entraId: data.entraId || `manual-${Date.now()}`,
       },
+      select: { id: true, email: true, name: true, role: true, createdAt: true },
     });
 
     res.status(201).json(user);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao criar usuario' });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: 'Dados invalidos', details: error.errors });
+      return;
+    }
+    next(error);
   }
 }
 
-export async function adminUpdateUser(req: Request, res: Response) {
+export async function adminUpdateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const id = req.params.id as string;
-    const { name, role } = req.body;
-
-    const validRoles = ['VIEWER', 'EDITOR', 'ADMIN'];
-    if (role && !validRoles.includes(role)) {
-      res.status(400).json({ error: `Role invalida. Use: ${validRoles.join(', ')}` });
-      return;
-    }
+    const id = req.params.id;
+    const data = updateUserSchema.parse(req.body);
 
     // Prevent removing the last admin
-    if (role && role !== 'ADMIN') {
-      const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
+    if (data.role && data.role !== 'ADMIN') {
       const currentUser = await prisma.user.findUnique({ where: { id } });
-      if (adminCount <= 1 && currentUser?.role === 'ADMIN') {
-        res.status(400).json({ error: 'Nao e possivel remover o ultimo administrador' });
-        return;
+      if (currentUser?.role === 'ADMIN') {
+        const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
+        if (adminCount <= 1) {
+          res.status(400).json({ error: 'Nao e possivel remover o ultimo administrador' });
+          return;
+        }
       }
     }
 
     const user = await prisma.user.update({
       where: { id },
-      data: {
-        ...(name && { name }),
-        ...(role && { role }),
-      },
+      data,
+      select: { id: true, email: true, name: true, role: true, createdAt: true },
     });
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao atualizar usuario' });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: 'Dados invalidos', details: error.errors });
+      return;
+    }
+    next(error);
   }
 }
 
-export async function adminDeleteUser(req: Request, res: Response) {
+export async function adminDeleteUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const id = req.params.id as string;
+    const id = req.params.id;
 
-    // Prevent self-deletion
     if (req.user?.id === id) {
       res.status(400).json({ error: 'Voce nao pode deletar sua propria conta' });
       return;
     }
 
-    // Prevent removing the last admin
     const user = await prisma.user.findUnique({ where: { id } });
     if (user?.role === 'ADMIN') {
       const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
@@ -108,6 +110,6 @@ export async function adminDeleteUser(req: Request, res: Response) {
     await prisma.user.delete({ where: { id } });
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao deletar usuario' });
+    next(error);
   }
 }

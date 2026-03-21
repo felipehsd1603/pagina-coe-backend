@@ -1,5 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 import prisma from '../../config/database';
+
+const appUpdateSchema = z.object({
+  description: z.string().max(5000).optional(),
+  shortDescription: z.string().max(500).optional(),
+  bannerUrl: z.string().url().max(500).optional().nullable(),
+  iconUrl: z.string().url().max(500).optional().nullable(),
+  published: z.boolean().optional(),
+});
 
 export async function adminListApps(_req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -13,40 +22,23 @@ export async function adminListApps(_req: Request, res: Response, next: NextFunc
   }
 }
 
-export async function adminCreateApp(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const { benefits, documents, metrics, relatedFlows, ...appData } = req.body;
-
-    const app = await prisma.app.create({
-      data: {
-        ...appData,
-        benefits: benefits ? { create: benefits } : undefined,
-        documents: documents ? { create: documents } : undefined,
-        metrics: metrics ? { create: metrics } : undefined,
-        relatedFlows: relatedFlows ? { create: relatedFlows } : undefined,
-      },
-      include: { benefits: true, documents: true, metrics: true, relatedFlows: true },
-    });
-
-    res.status(201).json(app);
-  } catch (error) {
-    next(error);
-  }
-}
-
 export async function adminUpdateApp(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
-    const { benefits, documents, metrics, relatedFlows, ...appData } = req.body;
+    const data = appUpdateSchema.parse(req.body);
 
     const app = await prisma.app.update({
       where: { id },
-      data: appData,
+      data,
       include: { benefits: true, documents: true, metrics: true, relatedFlows: true },
     });
 
     res.json(app);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: 'Dados invalidos', details: error.errors });
+      return;
+    }
     next(error);
   }
 }

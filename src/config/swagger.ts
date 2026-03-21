@@ -173,8 +173,8 @@ const options: swaggerJsdoc.Options = {
           type: 'object',
           required: ['email', 'password'],
           properties: {
-            email: { type: 'string', example: 'admin@empresa.mock' },
-            password: { type: 'string', example: 'admin' },
+            email: { type: 'string', example: 'admin@aegea.mock' },
+            password: { type: 'string', example: 'AegeaAdmin2025!' },
           },
         },
         LoginResponse: {

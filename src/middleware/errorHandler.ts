@@ -7,12 +7,18 @@ export function errorHandler(
   _next: NextFunction
 ): void {
   const status = err.status || 500;
-  const message = err.message || 'Erro interno do servidor';
 
-  console.error(`[erro] ${status} - ${message}`, err.stack);
+  // Log full error internally
+  console.error(`[erro] ${status} - ${err.message}`, err.stack);
+
+  // Never expose internal details to the client
+  const isProduction = process.env.NODE_ENV === 'production';
+  const message =
+    isProduction && status === 500
+      ? 'Erro interno do servidor'
+      : err.message || 'Erro interno do servidor';
 
   res.status(status).json({
     error: message,
-    status,
   });
 }

@@ -1,5 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 import prisma from '../../config/database';
+
+const testimonialSchema = z.object({
+  author: z.string().min(1).max(200),
+  role: z.string().min(1).max(200),
+  content: z.string().min(1).max(2000),
+  rating: z.number().int().min(1).max(5),
+  appId: z.string().uuid().optional().nullable(),
+  published: z.boolean().optional(),
+});
+
+const testimonialUpdateSchema = testimonialSchema.partial();
 
 export async function adminListTestimonials(_req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -15,9 +27,14 @@ export async function adminListTestimonials(_req: Request, res: Response, next: 
 
 export async function adminCreateTestimonial(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const testimonial = await prisma.testimonial.create({ data: req.body });
+    const data = testimonialSchema.parse(req.body);
+    const testimonial = await prisma.testimonial.create({ data });
     res.status(201).json(testimonial);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: 'Dados invalidos', details: error.errors });
+      return;
+    }
     next(error);
   }
 }
@@ -25,9 +42,14 @@ export async function adminCreateTestimonial(req: Request, res: Response, next: 
 export async function adminUpdateTestimonial(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
-    const testimonial = await prisma.testimonial.update({ where: { id }, data: req.body });
+    const data = testimonialUpdateSchema.parse(req.body);
+    const testimonial = await prisma.testimonial.update({ where: { id }, data });
     res.json(testimonial);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: 'Dados invalidos', details: error.errors });
+      return;
+    }
     next(error);
   }
 }

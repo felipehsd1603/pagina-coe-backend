@@ -17,16 +17,32 @@ async function main() {
   await prisma.app.deleteMany();
   await prisma.user.deleteMany();
 
-  // ─── Usuario Admin ────────────────────────────────────────
+  // ─── Usuarios Mock ────────────────────────────────────────
   const adminUser = await prisma.user.create({
     data: {
       entraId: 'mock-admin-001',
-      email: 'admin@empresa.mock',
+      email: 'admin@aegea.mock',
       name: 'Administrador CoE',
       role: 'ADMIN',
     },
   });
-  console.log(`Usuario admin criado: ${adminUser.email}`);
+  await prisma.user.create({
+    data: {
+      entraId: 'mock-editor-001',
+      email: 'editor@aegea.mock',
+      name: 'Editor CoE',
+      role: 'EDITOR',
+    },
+  });
+  await prisma.user.create({
+    data: {
+      entraId: 'mock-viewer-001',
+      email: 'viewer@aegea.mock',
+      name: 'Viewer CoE',
+      role: 'VIEWER',
+    },
+  });
+  console.log(`Usuarios mock criados: admin, editor, viewer`);
 
   // ─── Apps ─────────────────────────────────────────────────
   const apps = await Promise.all([

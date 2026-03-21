@@ -8,11 +8,10 @@ services:
       target: dev
     ports:
       - '4000:4000'
+    env_file:
+      - .env
     environment:
       - PORT=4000
-      - DATABASE_URL=sqlserver://sa:YourStr0ng!Pass@db:1433;database=portal_empresa;encrypt=true;trustServerCertificate=true
-      - AUTH_MODE=mock
-      - MOCK_JWT_SECRET=dev-secret-key-change-in-production
     volumes:
       - ./src:/app/src
     depends_on:
@@ -23,13 +22,13 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=YourStr0ng!Pass
+      - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD:?DB_SA_PASSWORD is required}
     ports:
       - '1433:1433'
     volumes:
       - sqldata:/var/opt/mssql
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStr0ng!Pass" -C -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" || exit 1
       interval: 10s
       timeout: 5s
       retries: 5

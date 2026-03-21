@@ -1,5 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 import prisma from '../../config/database';
+
+const metricSchema = z.object({
+  key: z.string().min(1).max(100).regex(/^[a-z0-9_-]+$/, 'Key deve conter apenas letras minusculas, numeros, hifens e underscores'),
+  label: z.string().min(1).max(200),
+  value: z.string().max(100),
+  icon: z.string().max(50).optional().nullable(),
+});
 
 export async function adminListMetrics(_req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -12,16 +20,20 @@ export async function adminListMetrics(_req: Request, res: Response, next: NextF
 
 export async function adminUpsertMetric(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { key, label, value, icon } = req.body;
+    const data = metricSchema.parse(req.body);
 
     const metric = await prisma.globalMetric.upsert({
-      where: { key },
-      update: { label, value, icon },
-      create: { key, label, value, icon },
+      where: { key: data.key },
+      update: { label: data.label, value: data.value, icon: data.icon },
+      create: data,
     });
 
     res.json(metric);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: 'Dados invalidos', details: error.errors });
+      return;
+    }
     next(error);
   }
 }
