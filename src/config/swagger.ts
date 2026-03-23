@@ -4,11 +4,11 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Portal EMPRESA_FICTICIA - API',
-      version: '1.0.0',
-      description: 'API do Portal de Produtos Digitais e Automacoes do CoE Power Platform - EMPRESA_FICTICIA',
+      title: 'Portal AEGEA - API',
+      version: '1.1.0',
+      description: 'API do Portal de Produtos Digitais e Automacoes do CoE Power Platform - AEGEA',
       contact: {
-        name: 'CoE Power Platform - EMPRESA_FICTICIA',
+        name: 'CoE Power Platform - AEGEA',
       },
     },
     servers: [
@@ -41,7 +41,7 @@ const options: swaggerJsdoc.Options = {
             directive: { type: 'string', enum: ['SCALE', 'MAINTAIN', 'RETIRE', 'EVALUATE'] },
             qualLevel: { type: 'string', enum: ['OURO', 'PRATA', 'BRONZE', 'SEM_CLASSIFICACAO'] },
             owner: { type: 'string' },
-            ownerEmail: { type: 'string' },
+            ownerEmail: { type: 'string', description: 'LGPD: oculto sem autenticacao' },
             regional: { type: 'string' },
             environment: { type: 'string' },
             iconUrl: { type: 'string' },
@@ -128,7 +128,8 @@ const options: swaggerJsdoc.Options = {
             area: { type: 'string' },
             priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] },
             status: { type: 'string', enum: ['PENDING', 'IN_REVIEW', 'APPROVED', 'IN_PROGRESS', 'COMPLETED', 'REJECTED'] },
-            adminNotes: { type: 'string' },
+            adminNotes: { type: 'string', nullable: true },
+            lgpdConsentAt: { type: 'string', format: 'date-time', nullable: true, description: 'LGPD: timestamp do consentimento' },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
           },
@@ -143,6 +144,7 @@ const options: swaggerJsdoc.Options = {
             requesterEmail: { type: 'string', format: 'email' },
             area: { type: 'string' },
             priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] },
+            lgpdConsent: { type: 'boolean', description: 'LGPD: consentimento do titular para tratamento de dados pessoais' },
           },
         },
         GlobalMetric: {
@@ -174,7 +176,8 @@ const options: swaggerJsdoc.Options = {
           required: ['email', 'password'],
           properties: {
             email: { type: 'string', example: 'admin@aegea.mock' },
-            password: { type: 'string', example: 'AegeaAdmin2025!' },
+            // SECURITY: Password example removed - do not expose credentials in API docs
+            password: { type: 'string', example: '********' },
           },
         },
         LoginResponse: {
@@ -190,6 +193,53 @@ const options: swaggerJsdoc.Options = {
                 role: { type: 'string' },
               },
             },
+          },
+        },
+        DemandUpdate: {
+          type: 'object',
+          properties: {
+            status: { type: 'string', enum: ['PENDING', 'IN_REVIEW', 'APPROVED', 'IN_PROGRESS', 'COMPLETED', 'REJECTED'] },
+            priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] },
+            adminNotes: { type: 'string', maxLength: 5000, nullable: true },
+          },
+        },
+        User: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            email: { type: 'string', format: 'email' },
+            name: { type: 'string' },
+            role: { type: 'string', enum: ['VIEWER', 'EDITOR', 'ADMIN'] },
+            entraId: { type: 'string', nullable: true },
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        LogoutResponse: {
+          type: 'object',
+          properties: {
+            message: { type: 'string', example: 'Logout realizado com sucesso' },
+          },
+        },
+        PaginatedApps: {
+          type: 'object',
+          properties: {
+            data: { type: 'array', items: { $ref: '#/components/schemas/App' } },
+            meta: {
+              type: 'object',
+              properties: {
+                page: { type: 'integer' },
+                limit: { type: 'integer' },
+                total: { type: 'integer' },
+                totalPages: { type: 'integer' },
+              },
+            },
+          },
+        },
+        ValidationError: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Dados invalidos' },
+            details: { type: 'object' },
           },
         },
         Error: {
@@ -209,6 +259,7 @@ const options: swaggerJsdoc.Options = {
       { name: 'Demands', description: 'Gestao de demandas' },
       { name: 'Auth', description: 'Autenticacao (Mock / Entra ID)' },
       { name: 'CoE Sync', description: 'Integracao com CoE Starter Kit (Dataverse) — apps, flows, makers, ambientes, conectores' },
+      { name: 'Admin - Users', description: 'CRUD de usuarios (ADMIN only)' },
       { name: 'Admin - Apps', description: 'Enriquecimento editorial de apps (descricao, banner, beneficios)' },
       { name: 'Admin - Testimonials', description: 'CRUD de depoimentos' },
       { name: 'Admin - Demands', description: 'Gestao de demandas' },

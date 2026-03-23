@@ -24,7 +24,8 @@ services:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD:?DB_SA_PASSWORD is required}
     ports:
-      - '1433:1433'
+      # SECURITY: Bind to localhost only - prevents external access to SQL Server
+      - '127.0.0.1:1433:1433'
     volumes:
       - sqldata:/var/opt/mssql
     healthcheck:

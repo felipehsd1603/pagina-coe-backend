@@ -22,7 +22,7 @@ export async function adminListApps(_req: Request, res: Response, next: NextFunc
   }
 }
 
-export async function adminUpdateApp(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminUpdateApp(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
     const data = appUpdateSchema.parse(req.body);
@@ -43,7 +43,7 @@ export async function adminUpdateApp(req: Request, res: Response, next: NextFunc
   }
 }
 
-export async function adminDeleteApp(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminDeleteApp(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
     await prisma.app.delete({ where: { id } });

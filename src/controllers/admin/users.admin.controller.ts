@@ -56,9 +56,9 @@ export async function adminCreateUser(req: Request, res: Response, next: NextFun
   }
 }
 
-export async function adminUpdateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminUpdateUser(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
   try {
-    const id = req.params.id;
+    const { id } = req.params;
     const data = updateUserSchema.parse(req.body);
 
     // Prevent removing the last admin
@@ -89,9 +89,9 @@ export async function adminUpdateUser(req: Request, res: Response, next: NextFun
   }
 }
 
-export async function adminDeleteUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminDeleteUser(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
   try {
-    const id = req.params.id;
+    const { id } = req.params;
 
     if (req.user?.id === id) {
       res.status(400).json({ error: 'Voce nao pode deletar sua propria conta' });

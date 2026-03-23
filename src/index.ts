@@ -7,6 +7,7 @@ import { env } from './config/env';
 import { routes } from './routes';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler } from './middleware/errorHandler';
+import { auditMiddleware } from './middleware/auditMiddleware';
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.error(`[CORS Blocked] Request origin: "${origin}" | Allowed origins: ${allowedOrigins.join(', ')}`);
         callback(new Error(`Origin ${origin} nao permitida pelo CORS`));
       }
     },
@@ -30,6 +32,31 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
+
+// ─── CSRF protection: Origin/Referer check for mutating requests ───
+app.use((req, res, next) => {
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    const origin = req.headers.origin;
+    const referer = req.headers.referer;
+    // Allow requests with no origin (server-to-server, curl, Postman)
+    if (origin && !allowedOrigins.includes(origin)) {
+      res.status(403).json({ error: 'Origem nao permitida (CSRF check)' });
+      return;
+    }
+    if (!origin && referer) {
+      try {
+        const refererOrigin = new URL(referer).origin;
+        if (!allowedOrigins.includes(refererOrigin)) {
+          res.status(403).json({ error: 'Referer nao permitido (CSRF check)' });
+          return;
+        }
+      } catch {
+        // Invalid referer URL — let it through (will fail on CORS anyway)
+      }
+    }
+  }
+  next();
+});
 
 // ─── Body size limit ────────────────────────────────
 app.use(express.json({ limit: '1mb' }));
@@ -55,8 +82,11 @@ const authLimiter = rateLimit({
 });
 app.use('/api/v1/auth/login', authLimiter);
 
-// ─── Swagger docs (dev only) ────────────────────────
-if (env.NODE_ENV !== 'production') {
+// ─── Audit logging for admin actions ────────────────
+app.use('/api/v1/admin', auditMiddleware);
+
+// ─── Swagger docs (development only — not staging) ──
+if (env.NODE_ENV === 'development') {
   app.use(
     '/api/docs',
     swaggerUi.serve,
@@ -79,7 +109,7 @@ const PORT = env.PORT;
 app.listen(PORT, () => {
   console.log(`[backend] Servidor rodando na porta ${PORT} (${env.NODE_ENV})`);
   console.log(`[backend] API disponivel em http://localhost:${PORT}/api/v1`);
-  if (env.NODE_ENV !== 'production') {
+  if (env.NODE_ENV === 'development') {
     console.log(`[backend] Swagger docs em http://localhost:${PORT}/api/docs`);
   }
 });

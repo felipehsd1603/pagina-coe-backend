@@ -1,7 +1,18 @@
 import { Router } from 'express';
-import { createDemand } from '../controllers/demands.controller';
+import rateLimit from 'express-rate-limit';
+import { createDemand, deleteDemand } from '../controllers/demands.controller';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 export const demandsRouter = Router();
+
+// SECURITY: Stricter rate limit for unauthenticated demand creation (5 req/IP/hour)
+const demandCreateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Limite de envio de demandas atingido. Tente novamente em 1 hora.' },
+});
 
 /**
  * @openapi
@@ -9,20 +20,17 @@ export const demandsRouter = Router();
  *   post:
  *     tags: [Demands]
  *     summary: Enviar nova demanda
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/DemandCreate'
- *     responses:
- *       201:
- *         description: Demanda criada
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Demand'
- *       400:
- *         description: Dados invalidos
  */
-demandsRouter.post('/', createDemand);
+demandsRouter.post('/', demandCreateLimiter, createDemand);
+
+/**
+ * @openapi
+ * /demands/{id}:
+ *   delete:
+ *     tags: [Demands]
+ *     summary: Excluir demanda (LGPD - direito de exclusao)
+ *     description: Requer autenticacao. Solicitante pode deletar sua propria demanda ou admin pode deletar qualquer.
+ *     security:
+ *       - bearerAuth: []
+ */
+demandsRouter.delete('/:id', authMiddleware, deleteDemand);

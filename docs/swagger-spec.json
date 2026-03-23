@@ -1,11 +1,11 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Portal EMPRESA_FICTICIA - API",
+    "title": "Portal AEGEA - API",
     "version": "1.0.0",
-    "description": "API do Portal de Produtos Digitais e Automacoes do CoE Power Platform - EMPRESA_FICTICIA",
+    "description": "API do Portal de Produtos Digitais e Automacoes do CoE Power Platform - AEGEA",
     "contact": {
-      "name": "CoE Power Platform - EMPRESA_FICTICIA"
+      "name": "CoE Power Platform - AEGEA"
     }
   },
   "servers": [

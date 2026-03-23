@@ -3,8 +3,8 @@ import { z } from 'zod';
 import prisma from '../../config/database';
 
 const testimonialSchema = z.object({
-  author: z.string().min(1).max(200),
-  role: z.string().min(1).max(200),
+  authorName: z.string().min(1).max(200),
+  authorRole: z.string().min(1).max(200),
   content: z.string().min(1).max(2000),
   rating: z.number().int().min(1).max(5),
   appId: z.string().uuid().optional().nullable(),
@@ -39,7 +39,7 @@ export async function adminCreateTestimonial(req: Request, res: Response, next: 
   }
 }
 
-export async function adminUpdateTestimonial(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminUpdateTestimonial(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
     const data = testimonialUpdateSchema.parse(req.body);
@@ -54,7 +54,7 @@ export async function adminUpdateTestimonial(req: Request, res: Response, next: 
   }
 }
 
-export async function adminDeleteTestimonial(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminDeleteTestimonial(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
     await prisma.testimonial.delete({ where: { id } });

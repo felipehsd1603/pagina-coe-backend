@@ -38,7 +38,7 @@ export async function adminUpsertMetric(req: Request, res: Response, next: NextF
   }
 }
 
-export async function adminDeleteMetric(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminDeleteMetric(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
     await prisma.globalMetric.delete({ where: { id } });

@@ -106,17 +106,18 @@ model Testimonial {
 }
 
 model Demand {
-  id             String   @id @default(uuid())
+  id             String    @id @default(uuid())
   title          String
-  description    String   @db.NVarChar(Max)
+  description    String    @db.NVarChar(Max)
   requesterName  String
   requesterEmail String
   area           String
-  priority       String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
-  status         String   @default("PENDING") // PENDING, IN_REVIEW, APPROVED, IN_PROGRESS, COMPLETED, REJECTED
-  adminNotes     String?  @db.NVarChar(Max)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  priority       String    @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  status         String    @default("PENDING") // PENDING, IN_REVIEW, APPROVED, IN_PROGRESS, COMPLETED, REJECTED
+  adminNotes     String?   @db.NVarChar(Max)
+  lgpdConsentAt  DateTime? // LGPD: timestamp do consentimento do titular
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@map("demands")
 }

@@ -4,12 +4,11 @@ import prisma from '../../config/database';
 
 const courseSchema = z.object({
   title: z.string().min(1).max(300),
-  description: z.string().max(2000).optional(),
+  description: z.string().max(2000),
   tier: z.enum(['T1', 'T2', 'T3', 'T4']),
-  format: z.string().max(100).optional(),
-  duration: z.string().max(50).optional(),
+  durationMin: z.number().int().min(0).optional(),
+  published: z.boolean().optional(),
   url: z.string().url().max(500).optional().nullable(),
-  isPublished: z.boolean().optional(),
 });
 
 const courseUpdateSchema = courseSchema.partial();
@@ -37,7 +36,7 @@ export async function adminCreateCourse(req: Request, res: Response, next: NextF
   }
 }
 
-export async function adminUpdateCourse(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminUpdateCourse(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
     const data = courseUpdateSchema.parse(req.body);
@@ -52,7 +51,7 @@ export async function adminUpdateCourse(req: Request, res: Response, next: NextF
   }
 }
 
-export async function adminDeleteCourse(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminDeleteCourse(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
     await prisma.course.delete({ where: { id } });

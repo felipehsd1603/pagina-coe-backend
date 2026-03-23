@@ -2,16 +2,19 @@
   "name": "portal-empresa-backend",
   "private": true,
   "version": "1.0.0",
-  "description": "Portal de Produtos Digitais EMPRESA_FICTICIA - Backend API",
+  "description": "Portal de Produtos Digitais AEGEA - Backend API",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file .env src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "tsc --noEmit",
     "db:migrate": "npx prisma migrate dev",
     "db:seed": "npx prisma db seed",
     "db:studio": "npx prisma studio",
-    "db:generate": "npx prisma generate"
+    "db:generate": "npx prisma generate",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
@@ -31,9 +34,11 @@
     "@types/jsonwebtoken": "^9.0.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.0",
     "prisma": "^6.0.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.0"
   },
   "prisma": {
     "seed": "tsx src/prisma/seed/index.ts"

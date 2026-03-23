@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { mockLogin, getMe } from '../controllers/auth.controller';
+import { mockLogin, getMe, logout } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/authMiddleware';
 
 export const authRouter = Router();
@@ -28,6 +28,20 @@ export const authRouter = Router();
  *         description: Credenciais invalidas
  */
 authRouter.post('/login', mockLogin);
+
+/**
+ * @openapi
+ * /auth/logout:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Logout (invalida o token JWT)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout realizado com sucesso
+ */
+authRouter.post('/logout', logout);
 
 /**
  * @openapi

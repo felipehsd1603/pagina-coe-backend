@@ -1,15 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { z } from 'zod';
-import prisma from '../config/database';
-
-const createDemandSchema = z.object({
-  title: z.string().min(3, 'Titulo deve ter pelo menos 3 caracteres'),
-  description: z.string().min(10, 'Descricao deve ter pelo menos 10 caracteres'),
-  requesterName: z.string().min(2),
-  requesterEmail: z.string().email('Email invalido'),
-  area: z.string().min(2),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
-});
+import {
+  createDemandSchema,
+  createDemand as createDemandService,
+  deleteDemand as deleteDemandService,
+  DemandError,
+} from '../services/demand.service';
 
 export async function createDemand(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -20,15 +15,24 @@ export async function createDemand(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    const demand = await prisma.demand.create({
-      data: {
-        ...parsed.data,
-        status: 'PENDING',
-      },
-    });
-
+    const demand = await createDemandService(parsed.data);
     res.status(201).json(demand);
   } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteDemand(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { id } = req.params;
+
+    await deleteDemandService(id, req.user?.email, req.user?.role);
+    res.status(204).send();
+  } catch (error) {
+    if (error instanceof DemandError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
     next(error);
   }
 }

@@ -16,12 +16,22 @@ const envSchema = z.object({
   DATAVERSE_TENANT_ID: z.string().optional(),
   DATAVERSE_CLIENT_ID: z.string().optional(),
   DATAVERSE_CLIENT_SECRET: z.string().optional(),
+  // Mock credentials (only used when AUTH_MODE=mock, must be set via .env)
+  MOCK_ADMIN_PASSWORD: z.string().optional(),
+  MOCK_EDITOR_PASSWORD: z.string().optional(),
+  MOCK_VIEWER_PASSWORD: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   console.error('Variaveis de ambiente invalidas:', parsed.error.flatten().fieldErrors);
+  process.exit(1);
+}
+
+// SECURITY: Block mock auth in production
+if (parsed.data.NODE_ENV === 'production' && parsed.data.AUTH_MODE === 'mock') {
+  console.error('[SECURITY] AUTH_MODE=mock nao e permitido em NODE_ENV=production. Use AUTH_MODE=entra.');
   process.exit(1);
 }
 
