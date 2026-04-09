@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { roleHasFeature, type Feature } from '../config/features';
 
 type Role = 'VIEWER' | 'EDITOR' | 'ADMIN';
 
@@ -37,6 +38,34 @@ export function requireRole(...roles: Role[]) {
 
     res.status(403).json({
       error: 'Permissao insuficiente',
+    });
+  };
+}
+
+/**
+ * Middleware that requires the user to have a specific feature flag enabled for their role.
+ * Uses the ROLE_FEATURES map from config/features.ts.
+ *
+ * Usage:
+ *   requireFeature('users')           — only roles with 'users' feature
+ *   requireFeature('demands.manage')  — only roles with 'demands.manage' feature
+ */
+export function requireFeature(feature: Feature) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Autenticacao necessaria' });
+      return;
+    }
+
+    const userRole = req.user.role as string;
+
+    if (roleHasFeature(userRole, feature)) {
+      next();
+      return;
+    }
+
+    res.status(403).json({
+      error: 'Permissao insuficiente para esta funcionalidade',
     });
   };
 }

@@ -10,13 +10,29 @@ const appUpdateSchema = z.object({
   published: z.boolean().optional(),
 });
 
-export async function adminListApps(_req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminListApps(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const apps = await prisma.app.findMany({
-      orderBy: { name: 'asc' },
-      include: { benefits: true, metrics: true },
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.app.findMany({
+        orderBy: { name: 'asc' },
+        include: { benefits: true, metrics: true },
+        skip,
+        take: limit,
+      }),
+      prisma.app.count(),
+    ]);
+
+    res.json({
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     });
-    res.json(apps);
   } catch (error) {
     next(error);
   }

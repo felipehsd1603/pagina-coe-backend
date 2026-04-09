@@ -20,6 +20,15 @@ const envSchema = z.object({
   MOCK_ADMIN_PASSWORD: z.string().optional(),
   MOCK_EDITOR_PASSWORD: z.string().optional(),
   MOCK_VIEWER_PASSWORD: z.string().optional(),
+  // Entra ID (Microsoft Graph) — for user sync from AD group
+  ENTRA_TENANT_ID: z.string().optional(),
+  ENTRA_CLIENT_ID: z.string().optional(),
+  ENTRA_CLIENT_SECRET: z.string().optional(),
+  ENTRA_GROUP_ID: z.string().optional(),
+  // Redis — shared state across pods (token blacklist, etc.)
+  REDIS_URL: z.string().default('redis://localhost:6379'),
+  // Logging
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 });
 
 const parsed = envSchema.safeParse(process.env);

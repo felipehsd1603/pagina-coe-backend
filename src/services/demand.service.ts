@@ -10,7 +10,7 @@ export const createDemandSchema = z.object({
   requesterEmail: z.string().email('Email invalido'),
   area: z.string().min(2),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
-  lgpdConsent: z.boolean().optional(),
+  lgpdConsent: z.boolean().refine(val => val === true, { message: 'Consentimento LGPD obrigatorio' }),
 });
 
 export const updateDemandSchema = z.object({

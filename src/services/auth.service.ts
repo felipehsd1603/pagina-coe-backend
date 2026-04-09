@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { env } from '../config/env';
+import { logger } from '../config/logger';
 import { tokenBlacklist } from '../middleware/authMiddleware';
 
 /**
@@ -8,8 +9,10 @@ import { tokenBlacklist } from '../middleware/authMiddleware';
  * SECURITY: Prevents PII leakage in log files
  */
 function obfuscateEmail(email: string): string {
-  const [local, domain] = email.split('@');
-  if (!domain) return '***';
+  const parts = email.split('@');
+  const local = parts[0];
+  const domain = parts[1];
+  if (!local || !domain) return '***';
   const visible = local.charAt(0);
   return `${visible}***@${domain}`;
 }
@@ -47,15 +50,26 @@ export async function login(email: string, password: string): Promise<LoginResul
     throw new AuthError('Credenciais invalidas', 401);
   }
 
+  // Block login for deactivated users
+  if (!user.isActive) {
+    throw new AuthError('Usuario desativado. Contate o administrador.', 403);
+  }
+
   // In mock mode, validate against environment-sourced passwords
   if (env.AUTH_MODE === 'mock') {
     const mockPasswords = getMockPasswords();
     const expectedPassword = mockPasswords[email];
     if (!expectedPassword || password !== expectedPassword) {
-      console.warn(`[auth] Login falhou para ${obfuscateEmail(email)} - senha incorreta`);
+      logger.warn({ email: obfuscateEmail(email) }, 'Login failed — incorrect password');
       throw new AuthError('Credenciais invalidas', 401);
     }
   }
+
+  // Update lastLoginAt
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
+  });
 
   // Sign a proper JWT with expiration
   const token = jwt.sign(
@@ -74,7 +88,7 @@ export async function login(email: string, password: string): Promise<LoginResul
     }
   );
 
-  console.log(`[auth] Login bem-sucedido: ${obfuscateEmail(user.email)} (role: ${user.role})`);
+  logger.info({ email: obfuscateEmail(user.email), role: user.role }, 'Login successful');
 
   return {
     token,
@@ -90,12 +104,13 @@ export async function login(email: string, password: string): Promise<LoginResul
 /**
  * Invalidates the given JWT token by adding it to the blacklist.
  */
-export function invalidateToken(authHeader: string | undefined): void {
+export async function invalidateToken(authHeader: string | undefined): Promise<void> {
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
+    if (!token) return;
     const decoded = jwt.decode(token) as jwt.JwtPayload | null;
     const expiresAt = decoded?.exp ? decoded.exp * 1000 : Date.now() + 8 * 60 * 60 * 1000;
-    tokenBlacklist.add(token, expiresAt);
+    await tokenBlacklist.add(token, expiresAt);
   }
 }
 

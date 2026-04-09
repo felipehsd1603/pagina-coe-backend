@@ -147,12 +147,16 @@ model Course {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  entraId   String   @unique
-  email     String   @unique
-  name      String
-  role      String   @default("VIEWER") // VIEWER, EDITOR, ADMIN
-  createdAt DateTime @default(now())
+  id          String    @id @default(uuid())
+  entraId     String    @unique
+  email       String    @unique
+  name        String
+  role        String    @default("VIEWER") // VIEWER, EDITOR, ADMIN
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+  department  String?
+  jobTitle    String?
+  createdAt   DateTime  @default(now())
 
   @@map("users")
 }

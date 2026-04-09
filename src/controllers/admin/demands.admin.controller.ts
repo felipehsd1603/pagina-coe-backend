@@ -1,16 +1,34 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import prisma from '../../config/database';
 import {
-  listDemands,
   updateDemand,
   updateDemandSchema,
   adminDeleteDemand as adminDeleteDemandService,
 } from '../../services/demand.service';
 
-export async function adminListDemands(_req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminListDemands(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const demands = await listDemands();
-    res.json(demands);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.demand.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.demand.count(),
+    ]);
+
+    res.json({
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     next(error);
   }

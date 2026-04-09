@@ -39,14 +39,14 @@ describe('Apps Controller', () => {
 
 describe('Demands Controller', () => {
   beforeEach(() => vi.clearAllMocks());
-  it('create valid', async () => { const d = { title: 'Nova automacao', description: 'Preciso automatizar processo', requesterName: 'Felipe', requesterEmail: 'felipe@aegea.com', area: 'TI' }; mockPrisma.demand.create.mockResolvedValue({ id: '1', ...d, status: 'PENDING', priority: 'MEDIUM' }); const res = mockRes(); await createDemand(mockReq({ body: d }), res, next); expect(res.status).toHaveBeenCalledWith(201); });
+  it('create valid', async () => { const d = { title: 'Nova automacao', description: 'Preciso automatizar processo', requesterName: 'Felipe', requesterEmail: 'felipe@aegea.com', area: 'TI', lgpdConsent: true }; mockPrisma.demand.create.mockResolvedValue({ id: '1', ...d, status: 'PENDING', priority: 'MEDIUM' }); const res = mockRes(); await createDemand(mockReq({ body: d }), res, next); expect(res.status).toHaveBeenCalledWith(201); });
   it('reject short title', async () => { const res = mockRes(); await createDemand(mockReq({ body: { title: 'ab' } }), res, next); expect(res.status).toHaveBeenCalledWith(400); });
   it('reject bad email', async () => { const res = mockRes(); await createDemand(mockReq({ body: { title: 'Test', description: 'Long enough desc here', requesterName: 'F', requesterEmail: 'bad', area: 'TI' } }), res, next); expect(res.status).toHaveBeenCalledWith(400); });
 });
 
 describe('Admin Apps', () => {
   beforeEach(() => vi.clearAllMocks());
-  it('list', async () => { mockPrisma.app.findMany.mockResolvedValue([]); const res = mockRes(); await adminListApps(mockReq(), res, next); expect(res.json).toHaveBeenCalledWith([]); });
+  it('list', async () => { mockPrisma.app.findMany.mockResolvedValue([]); mockPrisma.app.count.mockResolvedValue(0); const res = mockRes(); await adminListApps(mockReq(), res, next); expect(res.json).toHaveBeenCalledWith({ data: [], total: 0, page: 1, limit: 20, totalPages: 0 }); });
   it('reject bad URL', async () => { const res = mockRes(); await adminUpdateApp(mockReq({ params: { id: '1' }, body: { bannerUrl: 'bad' } }) as any, res, next); expect(res.status).toHaveBeenCalledWith(400); });
   it('delete', async () => { mockPrisma.app.delete.mockResolvedValue({}); const res = mockRes(); await adminDeleteApp(mockReq({ params: { id: '1' } }) as any, res, next); expect(res.status).toHaveBeenCalledWith(204); });
 });

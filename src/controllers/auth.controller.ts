@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { login, invalidateToken, getProfile, AuthError } from '../services/auth.service';
+import { getFeaturesForRole } from '../config/features';
 
 export async function mockLogin(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -11,7 +12,12 @@ export async function mockLogin(req: Request, res: Response, next: NextFunction)
     }
 
     const result = await login(email, password);
-    res.json(result);
+
+    // Include features in login response
+    res.json({
+      ...result,
+      features: getFeaturesForRole(result.user.role),
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       res.status(error.statusCode).json({ error: error.message });
@@ -23,7 +29,7 @@ export async function mockLogin(req: Request, res: Response, next: NextFunction)
 
 export async function logout(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    invalidateToken(req.headers.authorization);
+    await invalidateToken(req.headers.authorization);
     res.json({ message: 'Logout realizado com sucesso' });
   } catch (error) {
     next(error);
@@ -38,7 +44,12 @@ export async function getMe(req: Request, res: Response, next: NextFunction): Pr
     }
 
     const user = await getProfile(req.user.id);
-    res.json(user);
+
+    // Include features based on user role in /auth/me response
+    res.json({
+      ...user,
+      features: getFeaturesForRole(user.role),
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       res.status(error.statusCode).json({ error: error.message });

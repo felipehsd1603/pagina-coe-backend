@@ -2,14 +2,23 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import pinoHttp from 'pino-http';
 import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
+import { logger } from './config/logger';
 import { routes } from './routes';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler } from './middleware/errorHandler';
 import { auditMiddleware } from './middleware/auditMiddleware';
+import { healthRouter } from './routes/health.routes';
+import prisma from './config/database';
+import { tokenBlacklist } from './middleware/authMiddleware';
+import { redis, connectRedis } from './config/redis';
 
 const app = express();
+
+// ─── Request logging (pino-http) ───────────────────
+app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => ['/healthz', '/readyz'].includes((req as express.Request).path) } }));
 
 // ─── Security headers (Helmet) ──────────────────────
 app.use(helmet());
@@ -23,7 +32,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.error(`[CORS Blocked] Request origin: "${origin}" | Allowed origins: ${allowedOrigins.join(', ')}`);
+        logger.warn({ origin, allowedOrigins }, 'CORS blocked request');
         callback(new Error(`Origin ${origin} nao permitida pelo CORS`));
       }
     },
@@ -98,6 +107,9 @@ if (env.NODE_ENV === 'development') {
   app.get('/api/docs.json', (_req, res) => res.json(swaggerSpec));
 }
 
+// ─── Health probes (no auth) ────────────────────────
+app.use(healthRouter);
+
 // ─── Routes ─────────────────────────────────────────
 app.use('/api/v1', routes);
 
@@ -106,12 +118,40 @@ app.use(errorHandler);
 
 const PORT = env.PORT;
 
-app.listen(PORT, () => {
-  console.log(`[backend] Servidor rodando na porta ${PORT} (${env.NODE_ENV})`);
-  console.log(`[backend] API disponivel em http://localhost:${PORT}/api/v1`);
-  if (env.NODE_ENV === 'development') {
-    console.log(`[backend] Swagger docs em http://localhost:${PORT}/api/docs`);
-  }
-});
+async function bootstrap() {
+  // Connect Redis (non-blocking — app works without it)
+  await connectRedis();
+
+  const server = app.listen(PORT, () => {
+    logger.info({ port: PORT, env: env.NODE_ENV }, 'Server started');
+    if (env.NODE_ENV === 'development') {
+      logger.info({ url: `http://localhost:${PORT}/api/docs` }, 'Swagger docs available');
+    }
+  });
+
+  // ─── Graceful shutdown ─────────────────────────────
+  const shutdown = async (signal: string) => {
+    logger.info({ signal }, 'Shutting down gracefully');
+    server.close(async () => {
+      await Promise.all([
+        prisma.$disconnect(),
+        redis.quit().catch(() => { /* already closed */ }),
+      ]);
+      tokenBlacklist.destroy();
+      logger.info('Graceful shutdown complete');
+      process.exit(0);
+    });
+    // Force exit after 10s if connections don't drain
+    setTimeout(() => {
+      logger.error('Forced shutdown after timeout');
+      process.exit(1);
+    }, 10_000);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+}
+
+bootstrap();
 
 export default app;

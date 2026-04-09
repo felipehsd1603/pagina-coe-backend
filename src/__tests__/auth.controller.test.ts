@@ -7,11 +7,35 @@ vi.mock('../config/database', () => ({
   default: {
     user: {
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
   },
 }));
 
+vi.mock('../config/redis', () => ({
+  redis: {
+    set: vi.fn().mockResolvedValue('OK'),
+    exists: vi.fn().mockResolvedValue(0),
+    quit: vi.fn().mockResolvedValue('OK'),
+  },
+  isRedisAvailable: vi.fn().mockReturnValue(false),
+  connectRedis: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../config/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 // Mock env - must match setup values
+vi.mock('../config/features', () => ({
+  getFeaturesForRole: vi.fn().mockReturnValue([]),
+}));
+
 vi.mock('../config/env', () => ({
   env: {
     JWT_SECRET: 'test-secret-key-that-is-at-least-32-chars-long',
@@ -73,7 +97,7 @@ describe('Auth Controller', () => {
     it('should return 401 when password is wrong', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: '1', email: 'admin@aegea.mock', name: 'Admin', role: 'ADMIN',
-        entraId: 'e1', createdAt: new Date(),
+        entraId: 'e1', createdAt: new Date(), isActive: true, lastLoginAt: null, department: null, jobTitle: null,
       });
       const req = mockReq({ body: { email: 'admin@aegea.mock', password: 'wrongpass' } });
       const res = mockRes();
@@ -85,13 +109,13 @@ describe('Auth Controller', () => {
     it('should return token on successful login', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: '1', email: 'admin@aegea.mock', name: 'Admin CoE', role: 'ADMIN',
-        entraId: 'e1', createdAt: new Date(),
+        entraId: 'e1', createdAt: new Date(), isActive: true, lastLoginAt: null, department: null, jobTitle: null,
       });
       const req = mockReq({ body: { email: 'admin@aegea.mock', password: 'admin123' } });
       const res = mockRes();
       await mockLogin(req, res, next);
       expect(res.json).toHaveBeenCalled();
-      const response = vi.mocked(res.json).mock.calls[0][0];
+      const response = vi.mocked(res.json).mock.calls[0]![0];
       expect(response).toHaveProperty('token');
       expect(response.user).toEqual({
         id: '1',
@@ -104,12 +128,12 @@ describe('Auth Controller', () => {
     it('should generate valid JWT on login', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: '1', email: 'admin@aegea.mock', name: 'Admin CoE', role: 'ADMIN',
-        entraId: 'e1', createdAt: new Date(),
+        entraId: 'e1', createdAt: new Date(), isActive: true, lastLoginAt: null, department: null, jobTitle: null,
       });
       const req = mockReq({ body: { email: 'admin@aegea.mock', password: 'admin123' } });
       const res = mockRes();
       await mockLogin(req, res, next);
-      const { token } = vi.mocked(res.json).mock.calls[0][0];
+      const { token } = vi.mocked(res.json).mock.calls[0]![0];
       const decoded = jwt.verify(token, 'test-secret-key-that-is-at-least-32-chars-long', {
         algorithms: ['HS256'],
         issuer: 'portal-aegea-mock',
@@ -132,7 +156,7 @@ describe('Auth Controller', () => {
       const res = mockRes();
       await logout(req, res, next);
       expect(res.json).toHaveBeenCalledWith({ message: 'Logout realizado com sucesso' });
-      expect(tokenBlacklist.has(token)).toBe(true);
+      expect(await tokenBlacklist.has(token)).toBe(true);
     });
 
     it('should return success even without token', async () => {
@@ -159,7 +183,7 @@ describe('Auth Controller', () => {
       const res = mockRes();
       await getMe(req, res, next);
       expect(res.json).toHaveBeenCalledWith({
-        id: '1', email: 'admin@aegea.mock', name: 'Admin', role: 'ADMIN',
+        id: '1', email: 'admin@aegea.mock', name: 'Admin', role: 'ADMIN', features: [],
       });
     });
   });

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../config/logger';
 
 export function errorHandler(
   err: Error & { status?: number },
@@ -9,7 +10,7 @@ export function errorHandler(
   const status = err.status || 500;
 
   // Log full error internally
-  console.error(`[erro] ${status} - ${err.message}`, err.stack);
+  logger.error({ err, status }, 'Request error');
 
   // Never expose internal details to the client
   const isProduction = process.env.NODE_ENV === 'production';

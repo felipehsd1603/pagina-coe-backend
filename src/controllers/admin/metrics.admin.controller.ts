@@ -9,10 +9,28 @@ const metricSchema = z.object({
   icon: z.string().max(50).optional().nullable(),
 });
 
-export async function adminListMetrics(_req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function adminListMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const metrics = await prisma.globalMetric.findMany({ orderBy: { key: 'asc' } });
-    res.json(metrics);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.globalMetric.findMany({
+        orderBy: { key: 'asc' },
+        skip,
+        take: limit,
+      }),
+      prisma.globalMetric.count(),
+    ]);
+
+    res.json({
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     next(error);
   }

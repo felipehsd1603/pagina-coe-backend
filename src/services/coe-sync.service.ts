@@ -1,3 +1,4 @@
+import { logger } from '../config/logger';
 /**
  * CoE Sync Service
  *
@@ -191,16 +192,16 @@ function getClient(): DataverseClient {
   const source = process.env.COE_DATA_SOURCE || 'local';
 
   if (source === 'dataverse') {
-    console.log('[CoE] Usando Dataverse OData (producao)');
+    logger.info('CoE data source: Dataverse OData');
     return new DataverseODataClient();
   }
 
   if (source === 'local') {
-    console.log('[CoE] Usando dados reais AEGEA (telemetria local)');
+    logger.info('CoE data source: AEGEA local telemetry');
     return new LocalAegeaClient();
   }
 
-  console.log('[CoE] Usando dados mock (demo)');
+  logger.info('CoE data source: mock (demo)');
   return new MockDataverseClient();
 }
 
