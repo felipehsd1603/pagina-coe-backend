@@ -7,6 +7,7 @@ import { demandsRouter } from './demands.routes';
 import { authRouter } from './auth.routes';
 import { adminRouter } from './admin.routes';
 import { coeRouter } from './coe.routes';
+import { listEnabledPages } from '../controllers/admin/pages.admin.controller';
 
 export const routes = Router();
 
@@ -18,3 +19,6 @@ routes.use('/demands', demandsRouter);
 routes.use('/auth', authRouter);
 routes.use('/admin', adminRouter);
 routes.use('/coe', coeRouter);
+
+// Public: returns enabled pages/sections (no auth required)
+routes.get('/pages', listEnabledPages);

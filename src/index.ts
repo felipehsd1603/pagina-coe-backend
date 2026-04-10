@@ -152,6 +152,6 @@ async function bootstrap() {
   process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
-bootstrap();
+void bootstrap();
 
 export default app;

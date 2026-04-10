@@ -7,14 +7,15 @@
     "dev": "tsx watch --env-file .env src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "lint": "tsc --noEmit",
+    "lint": "eslint src/ --ext .ts --ignore-pattern \"src/__tests__/**\" --ignore-pattern \"src/prisma/**\"",
     "db:migrate": "npx prisma migrate dev",
     "db:seed": "npx prisma db seed",
     "db:studio": "npx prisma studio",
     "db:generate": "npx prisma generate",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
@@ -35,7 +36,10 @@
     "@types/supertest": "^7.2.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
     "@vitest/coverage-v8": "^4.1.0",
+    "eslint": "^10.2.0",
     "ioredis": "^5.10.1",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",

@@ -20,6 +20,9 @@ import {
 import {
   adminListUsers, adminCreateUser, adminUpdateUser, adminDeleteUser, toggleUserActive,
 } from '../controllers/admin/users.admin.controller';
+import {
+  adminListPages, adminTogglePage,
+} from '../controllers/admin/pages.admin.controller';
 import { syncEntraUsers } from '../services/entra-sync.service';
 
 export const adminRouter = Router();
@@ -178,3 +181,8 @@ adminRouter.delete('/courses/:id', requireRole('ADMIN'), adminDeleteCourse);
 adminRouter.get('/metrics', requireRole('VIEWER'), adminListMetrics);
 adminRouter.post('/metrics', requireRole('EDITOR'), adminUpsertMetric);
 adminRouter.delete('/metrics/:id', requireRole('ADMIN'), adminDeleteMetric);
+
+// --- Page Visibility (ADMIN only) ---
+
+adminRouter.get('/pages', requireRole('ADMIN'), adminListPages);
+adminRouter.put('/pages/:id', requireRole('ADMIN'), adminTogglePage);

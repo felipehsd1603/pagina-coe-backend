@@ -160,3 +160,16 @@ model User {
 
   @@map("users")
 }
+
+model PageVisibility {
+  id         String   @id @default(uuid())
+  slug       String   @unique
+  label      String
+  type       String   @default("SECTION") // PAGE, SECTION
+  parentSlug String?
+  sortOrder  Int      @default(0)
+  isEnabled  Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
+
+  @@map("page_visibility")
+}

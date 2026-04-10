@@ -2,7 +2,7 @@ import prisma from '../config/database';
 
 // LGPD: Strip ownerEmail from app objects for unauthenticated requests
 function stripPII<T extends Record<string, unknown>>(obj: T): Omit<T, 'ownerEmail'> {
-  const { ownerEmail, ...rest } = obj;
+  const { ownerEmail: _ownerEmail, ...rest } = obj;
   return rest as Omit<T, 'ownerEmail'>;
 }
 

@@ -16,6 +16,44 @@ async function main() {
   await prisma.course.deleteMany();
   await prisma.app.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.pageVisibility.deleteMany();
+
+  // ─── Page Visibility (todas as secoes habilitadas por padrao) ─
+  const pageVisibilityData = [
+    // Pages
+    { slug: 'home', label: 'Home', type: 'PAGE', sortOrder: 0 },
+    { slug: 'app-detail', label: 'Detalhe do App', type: 'PAGE', sortOrder: 1 },
+    { slug: 'citizen-dev', label: 'Citizen Developers', type: 'PAGE', sortOrder: 2 },
+    // Home sections
+    { slug: 'home.hero', label: 'Hero', type: 'SECTION', parentSlug: 'home', sortOrder: 0 },
+    { slug: 'home.metrics', label: 'Métricas', type: 'SECTION', parentSlug: 'home', sortOrder: 1 },
+    { slug: 'home.about', label: 'Sobre', type: 'SECTION', parentSlug: 'home', sortOrder: 2 },
+    { slug: 'home.carousel', label: 'Carrossel de Apps', type: 'SECTION', parentSlug: 'home', sortOrder: 3 },
+    { slug: 'home.grid', label: 'Grid de Apps (Busca)', type: 'SECTION', parentSlug: 'home', sortOrder: 4 },
+    { slug: 'home.lifecycle', label: 'Ciclo de Vida', type: 'SECTION', parentSlug: 'home', sortOrder: 5 },
+    { slug: 'home.testimonials', label: 'Depoimentos', type: 'SECTION', parentSlug: 'home', sortOrder: 6 },
+    { slug: 'home.demand-cta', label: 'CTA Demanda', type: 'SECTION', parentSlug: 'home', sortOrder: 7 },
+    // App Detail sections
+    { slug: 'app-detail.hero', label: 'Hero do App', type: 'SECTION', parentSlug: 'app-detail', sortOrder: 0 },
+    { slug: 'app-detail.benefits', label: 'Benefícios', type: 'SECTION', parentSlug: 'app-detail', sortOrder: 1 },
+    { slug: 'app-detail.docs', label: 'Documentos', type: 'SECTION', parentSlug: 'app-detail', sortOrder: 2 },
+    { slug: 'app-detail.testimonials', label: 'Depoimentos', type: 'SECTION', parentSlug: 'app-detail', sortOrder: 3 },
+    // Citizen Dev sections
+    { slug: 'citizen-dev.hero', label: 'Hero', type: 'SECTION', parentSlug: 'citizen-dev', sortOrder: 0 },
+    { slug: 'citizen-dev.tiers', label: 'Níveis', type: 'SECTION', parentSlug: 'citizen-dev', sortOrder: 1 },
+    { slug: 'citizen-dev.environments', label: 'Ambientes', type: 'SECTION', parentSlug: 'citizen-dev', sortOrder: 2 },
+    { slug: 'citizen-dev.courses', label: 'Cursos', type: 'SECTION', parentSlug: 'citizen-dev', sortOrder: 3 },
+    { slug: 'citizen-dev.cta', label: 'CTA', type: 'SECTION', parentSlug: 'citizen-dev', sortOrder: 4 },
+  ];
+
+  for (const pv of pageVisibilityData) {
+    await prisma.pageVisibility.upsert({
+      where: { slug: pv.slug },
+      update: { label: pv.label, sortOrder: pv.sortOrder },
+      create: { ...pv, isEnabled: true },
+    });
+  }
+  console.log('✓ PageVisibility: 20 registros criados/atualizados');
 
   // ─── Usuarios Mock ────────────────────────────────────────
   const adminUser = await prisma.user.create({
