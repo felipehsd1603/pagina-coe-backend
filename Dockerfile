@@ -11,16 +11,16 @@ CMD ["npm", "run", "dev"]
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 COPY . .
-RUN npx prisma generate
+RUN npx prisma generate --schema src/prisma/schema.prisma
 RUN npm run build
 
 ## --- Production Stage ----------------------------------------
 FROM node:20-alpine AS production
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/src/prisma ./src/prisma
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
