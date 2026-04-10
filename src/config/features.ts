@@ -19,7 +19,8 @@ export type Feature =
   | 'metrics.manage'
   | 'users'
   | 'coe-sync'
-  | 'citizen-devs';
+  | 'citizen-devs'
+  | 'governance';
 
 export const ROLE_FEATURES: Record<Role, Feature[]> = {
   VIEWER: [
@@ -59,6 +60,7 @@ export const ROLE_FEATURES: Record<Role, Feature[]> = {
     'users',
     'coe-sync',
     'citizen-devs',
+    'governance',
   ],
 };
 
